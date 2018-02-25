@@ -125,7 +125,7 @@ def calculate_mean(previous_state):
 
 # In[6]:
 
-def sample_from_gaussian_distribution(previous_state, rv_size):
+def sample_from_distribution(previous_state, rv_size):
     state = calculate_mean(previous_state)
     current_state  =  np.random.dirichlet(state, 1)
     return current_state[0]
@@ -155,7 +155,7 @@ def sampling(w1, w2, rv_list, sample_size, rejection_size):
     i=0
     while len(sample)<sample_size+rejection_size+1:
         previous_state = sample[-1]
-        current_state = sample_from_gaussian_distribution(previous_state, rv_size)
+        current_state = sample_from_distribution(previous_state, rv_size)
         acceptace = get_acceptance_rate(w1, w2, current_state, previous_state)
         if (acceptace>=1):
             previous_state = current_state
