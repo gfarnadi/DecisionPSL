@@ -154,7 +154,9 @@ def prob_distribution_function(w1,w2):
 # In[ ]:
 
 def get_value_of_prob_distribution(prob_distribution, vid_dict, state):
-    
+    value = 0.0
+    #TODO: implement this part
+    return value
     
 
 

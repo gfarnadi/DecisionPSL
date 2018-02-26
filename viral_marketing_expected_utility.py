@@ -107,7 +107,7 @@ def convert_constraint3(marketed, cost, budget):
 def convert_fairness_constraint1(sensitive, buy, delta):
     # buy(u) & sensitive(u)
     # buy(u) & ~sensitive(u)
-    
+    #TODO: fix this constraint to have ratio instead of sum
     constraint = []
     sum_protected = 0
     sum_unprotected = 0
