@@ -27,6 +27,8 @@ def get_prob_distribution(w1,w2, state):
     #trusts(a,b)->reachable(a,b)
     #reachable(a,b) & trusts(b,c) -> reachable(a,c)
     
+    #print(state)
+    #print(len(state))
     prob_distribution = 0
     
     query1 = '''
@@ -53,9 +55,10 @@ def get_prob_distribution(w1,w2, state):
     
     vid_dict = dict()
     #print(len(reachables))
+    
     i = 0 
     for r in reachables:
-        vid_dict [(r[0],r[1])] = random.random()
+        vid_dict [(r[0],r[1])] = state[i]
         i+=1
     #print (len(vid_dict))
     
@@ -76,7 +79,7 @@ def get_prob_distribution(w1,w2, state):
             reachable2 = vid_dict [(r[0],r[2])]
         else:
             reachable2 = float(r[5])
-        prob_distribution+=w2 * cvxpy.pos(reachable2 - cvxpy.pos(reachable1 - float(r[4])))
+        prob_distribution+=w2 * cvxpy.pos(cvxpy.pos(reachable1 + float(r[4])-1.0) - reachable2)
         
         obj = cvxpy.Minimize(prob_distribution)
         prob = cvxpy.Problem(obj, [])
@@ -84,9 +87,75 @@ def get_prob_distribution(w1,w2, state):
         
     return result
 
-result = get_prob_distribution(w1 = 1 , w2 = 1 ,state = [])
-#print('\nProb_distribution\n%s'%('='*10))
-#print(result)
+
+# In[ ]:
+
+def prob_distribution_function(w1,w2):
+    #trusts(a,b)->reachable(a,b)
+    #reachable(a,b) & trusts(b,c) -> reachable(a,c)
+    
+    #print(state)
+    #print(len(state))
+    prob_distribution = 0
+    
+    query1 = '''
+    SELECT * from rule1
+    '''
+    query2 = '''
+    SELECT * from rule2
+    '''
+    query3 = '''
+    SELECT * from reachable
+    '''
+    
+    #print('\nRule1\n%s'%('='*10))
+    rule1 = get_query_result(query1)
+    #print(rule1)
+    
+    #print('\nRule2\n%s'%('='*10))
+    rule2 = get_query_result(query2)
+    #print(rule2)
+    
+    #print('\nReachables\n%s'%('='*10))
+    reachables = get_query_result(query3)
+    #print(reachables)
+    
+    vid_dict = dict()
+    #print(len(reachables))
+    
+    i = 0 
+    for r in reachables:
+        vid_dict [(r[0],r[1])] = cvxpy.Variable()
+        i+=1
+    #print (len(vid_dict))
+    
+    
+    for r in rule1:
+        if r[3]==None:
+            reachable = vid_dict [(r[0],r[1])]
+        else:
+            reachable = float(r[3])
+        prob_distribution+=w1 * cvxpy.pos(reachable - float(r[2]))
+        
+    for r in rule2:
+        if r[3]==None:
+            reachable1 = vid_dict [(r[0],r[1])]
+        else:
+            reachable1 = float(r[3])
+        if r[5]==None:
+            reachable2 = vid_dict [(r[0],r[2])]
+        else:
+            reachable2 = float(r[5])
+        prob_distribution+=w2 * cvxpy.pos(cvxpy.pos(reachable1 + float(r[4])-1.0) - reachable2)
+        
+    return prob_distribution,vid_dict
+
+
+# In[ ]:
+
+def get_value_of_prob_distribution(prob_distribution, vid_dict, state):
+    
+    
 
 
 # In[4]:
@@ -149,12 +218,14 @@ def get_value(w1, w2, state):
 
 def sampling(w1, w2, rv_list, sample_size, rejection_size):
     rv_size = len(rv_list)
+    #print(rv_size)
     initial_sample = initialize_variables(rv_size)
     sample = []
     sample.append(initial_sample)
     i=0
     while len(sample)<sample_size+rejection_size+1:
         previous_state = sample[-1]
+        #print(len(previous_state))
         current_state = sample_from_distribution(previous_state, rv_size)
         acceptace = get_acceptance_rate(w1, w2, current_state, previous_state)
         if (acceptace>=1):
@@ -169,6 +240,6 @@ def sampling(w1, w2, rv_list, sample_size, rejection_size):
                 i+=1                   
     return sample
 
-samples = sampling(1 , 1 , ['r1','r2','r3'], 10, 10)
+#samples = sampling(1 , 1 , ['r1','r2','r3'], 10, 10)
 #print(samples)
 

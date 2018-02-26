@@ -66,9 +66,12 @@ def make_objective(buy, reward):
 def convert_constraint1(marketed, buy):
     #marketed(u) & user(u) ->buy(u)
     constraint = []
+    obj_function = 0.0
     for uid,value in buy.items():
+        obj_function+=cvxpy.pos(marketed[uid]-buy[uid])
         constraint.append(cvxpy.pos(marketed[uid]-buy[uid]))
-    return constraint
+        #constraint.append(marketed[uid]-buy[uid]<=0)
+    return constraint,obj_function
 
 
 # In[7]:
@@ -76,11 +79,14 @@ def convert_constraint1(marketed, buy):
 def convert_constraint2(reachable, buy):
     #reachable(u,v) & buy(u) -> buy(v)
     constraint = []
+    obj_function = 0.0
     for edge,value in reachable.items():
         u = edge[0]
         v = edge[1]
-        constraint.append(cvxpy.pos(buy[v] - cvxpy.pos(float(value) - buy[u])))
-    return constraint
+        obj_function+=cvxpy.pos(cvxpy.pos(float(value)+buy[u]-1.0) - buy[u])
+        constraint.append(cvxpy.pos(cvxpy.pos(float(value)+buy[u]-1.0) - buy[u]))
+        #constraint.append(float(value)+buy[u]-buy[v]<=1)
+    return constraint, obj_function
 
 
 # In[8]:
@@ -98,7 +104,10 @@ def convert_constraint3(marketed, cost, budget):
 
 # In[9]:
 
-def convert_fairness_constraint(sensitive, buy, delta):
+def convert_fairness_constraint1(sensitive, buy, delta):
+    # buy(u) & sensitive(u)
+    # buy(u) & ~sensitive(u)
+    
     constraint = []
     sum_protected = 0
     sum_unprotected = 0
@@ -116,6 +125,35 @@ def convert_fairness_constraint(sensitive, buy, delta):
 
 
 # In[10]:
+
+def convert_fairness_constraint2(sensitive, reachable, marketed, delta):
+    # marketed(u) & reachable (u,v) & sensitive (v)
+    # marketed(u) & reachable (u,v) & ~sensitive (v)
+    sum_protected = 0
+    sum_unprotected = 0
+    constraint = []
+    sensitive_dict = dict()
+    for s in sensitive:
+        uid = s[0]
+        value = float(s[1])
+        sensitive_dict[uid] = value
+    for edge,value in reachable.items():
+        u = edge[0]
+        v = edge[1]
+        if sensitive_dict[v]==1.0:
+            sum_protected+= cvxpy.pos(marketed[u]+float(value)-1)
+            sum_unprotected += 0
+        else:
+            sum_protected+= 0
+            sum_unprotected += cvxpy.pos(marketed[u]+float(value)-1)
+    protected = sum_protected - sum_unprotected
+    unprotected = sum_unprotected - sum_protected
+    constraint+=[ protected<=delta , unprotected<=delta]
+    return constraint
+    
+
+
+# In[11]:
 
 def make_optimization(sample_size, budget, delta):
     #marketed(u) & user(u) ->buy(u)
@@ -211,7 +249,6 @@ def make_optimization(sample_size, budget, delta):
         reachables.append(reachable)
      
     # make the optimization problem 
-    objective_function = 0
     for i in range (sample_size):
         objective_function += make_objective(buys[i], reward)
     
@@ -220,15 +257,18 @@ def make_optimization(sample_size, budget, delta):
     function_constraint_3 = convert_constraint3(marketed, cost, budget)
     constraints+= function_constraint_3
     for i in range (sample_size):
-        function_constraint_1 = convert_constraint1(marketed, buys[i])
+        function_constraint_1,obj_1 = convert_constraint1(marketed, buys[i])
         constraints+=function_constraint_1
-        function_constraint_2 = convert_constraint2(reachables[i], buys[i])
-        #constraints+=function_constraint_2
-        
+        #objective_function+=1-obj_1
+        function_constraint_2, obj_2 = convert_constraint2(reachables[i], buys[i])
+        constraints+=function_constraint_2
+        #objective_function+=1-obj_2
     # make the fairness constraints
     for i in range (sample_size):
-        fairness_constraint = convert_fairness_constraint(sensitive, buys[i], delta)
-        constraints+=fairness_constraint
+        fairness_constraint1 = convert_fairness_constraint1(sensitive, buys[i], delta)
+        constraints+=fairness_constraint1
+        #fairness_constraint2 = convert_fairness_constraint2(sensitive, reachable, marketed, delta)
+        #constraints+=fairness_constraint2
         
     # make the range constraints [0,1]
     for var, value in var_dict.items():
