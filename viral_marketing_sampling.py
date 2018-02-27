@@ -88,7 +88,7 @@ def get_prob_distribution(w1,w2, state):
     return result
 
 
-# In[ ]:
+# In[4]:
 
 def prob_distribution_function(w1,w2):
     #trusts(a,b)->reachable(a,b)
@@ -148,19 +148,22 @@ def prob_distribution_function(w1,w2):
             reachable2 = float(r[5])
         prob_distribution+=w2 * cvxpy.pos(cvxpy.pos(reachable1 + float(r[4])-1.0) - reachable2)
         
-    return prob_distribution,vid_dict
+    return prob_distribution, vid_dict
 
 
-# In[ ]:
+# In[5]:
 
 def get_value_of_prob_distribution(prob_distribution, vid_dict, state):
     value = 0.0
-    #TODO: implement this part
-    return value
+    i = 0
+    for key,value in vid_dict.items():
+        vid_dict[key].value = state[i]
+        i+=1
+    return prob_distribution.value
     
 
 
-# In[4]:
+# In[6]:
 
 def initialize_variables(rv_size):
     initial_sample = []
@@ -170,7 +173,7 @@ def initialize_variables(rv_size):
     return initial_sample 
 
 
-# In[5]:
+# In[7]:
 
 def calculate_mean(previous_state):
     n = len(previous_state)
@@ -194,7 +197,7 @@ def calculate_mean(previous_state):
     return solution
 
 
-# In[6]:
+# In[8]:
 
 def sample_from_distribution(previous_state, rv_size):
     state = calculate_mean(previous_state)
@@ -202,21 +205,23 @@ def sample_from_distribution(previous_state, rv_size):
     return current_state[0]
 
 
-# In[7]:
+# In[9]:
 
-def get_acceptance_rate(w1, w2, current_state, previous_state):
-    accept =  min(1, get_value(w1, w2, current_state)/ get_value(w1, w2, previous_state))
+def get_acceptance_rate(prob_distribution, vid_dict, current_state, previous_state):
+    #accept =  min(1, get_value(w1, w2, current_state)/ get_value(w1, w2, previous_state))
+    accept = min(1, get_value_of_prob_distribution(prob_distribution, vid_dict, current_state) 
+                 / get_value_of_prob_distribution(prob_distribution, vid_dict, previous_state))
     return accept
 
 
-# In[8]:
+# In[10]:
 
 def get_value(w1, w2, state):
     value = get_prob_distribution(w1, w2, state)
     return value
 
 
-# In[9]:
+# In[11]:
 
 def sampling(w1, w2, rv_list, sample_size, rejection_size):
     rv_size = len(rv_list)
@@ -224,12 +229,13 @@ def sampling(w1, w2, rv_list, sample_size, rejection_size):
     initial_sample = initialize_variables(rv_size)
     sample = []
     sample.append(initial_sample)
+    prob_distribution, vid_dict = prob_distribution_function(w1,w2)
     i=0
     while len(sample)<sample_size+rejection_size+1:
         previous_state = sample[-1]
         #print(len(previous_state))
         current_state = sample_from_distribution(previous_state, rv_size)
-        acceptace = get_acceptance_rate(w1, w2, current_state, previous_state)
+        acceptace = get_acceptance_rate(prob_distribution, vid_dict, current_state, previous_state)
         if (acceptace>=1):
             previous_state = current_state
             sample.append(previous_state)
@@ -244,4 +250,9 @@ def sampling(w1, w2, rv_list, sample_size, rejection_size):
 
 #samples = sampling(1 , 1 , ['r1','r2','r3'], 10, 10)
 #print(samples)
+
+
+# In[ ]:
+
+
 

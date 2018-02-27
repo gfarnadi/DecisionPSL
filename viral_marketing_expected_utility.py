@@ -107,17 +107,24 @@ def convert_constraint3(marketed, cost, budget):
 def convert_fairness_constraint1(sensitive, buy, delta):
     # buy(u) & sensitive(u)
     # buy(u) & ~sensitive(u)
-    #TODO: fix this constraint to have ratio instead of sum
     constraint = []
-    sum_protected = 0
-    sum_unprotected = 0
+    sum_protected = 0.0
+    sum_unprotected = 0.0
+    size_protected = 0.0
+    size_unprotected = 0.0
+    for s in sensitive:
+        value = float(s[1])
+        if (value==1):
+            size_protected +=1.0
+        else:
+            size_unprotected +=1.0    
     for s in sensitive:
         uid = s[0]
         value = float(s[1])
-        sum_protected += buy[uid] * value
-        sum_unprotected += buy[uid] * (1 - value)
+        sum_protected += buy[uid] * value #* (1/float(size_protected))
+        sum_unprotected += buy[uid] * (1 - value) #* (1/float(size_unprotected))
     protected = sum_protected - sum_unprotected
-    unprotected = sum_unprotected - sum_protected
+    unprotected = sum_unprotected -  sum_protected
     constraint+=[ protected<=delta , unprotected<=delta]
     return constraint 
     
@@ -129,23 +136,30 @@ def convert_fairness_constraint1(sensitive, buy, delta):
 def convert_fairness_constraint2(sensitive, reachable, marketed, delta):
     # marketed(u) & reachable (u,v) & sensitive (v)
     # marketed(u) & reachable (u,v) & ~sensitive (v)
-    sum_protected = 0
-    sum_unprotected = 0
+    sum_protected = 0.0
+    sum_unprotected = 0.0
     constraint = []
     sensitive_dict = dict()
+    size_protected = 0.0
+    size_unprotected = 0.0
     for s in sensitive:
         uid = s[0]
         value = float(s[1])
+        if (value ==1):
+            size_protected += 1.0
+        else:
+            size_unprotected += 1.0
         sensitive_dict[uid] = value
     for edge,value in reachable.items():
         u = edge[0]
         v = edge[1]
-        if sensitive_dict[v]==1.0:
-            sum_protected+= cvxpy.pos(marketed[u]+float(value)-1)
-            sum_unprotected += 0
-        else:
-            sum_protected+= 0
-            sum_unprotected += cvxpy.pos(marketed[u]+float(value)-1)
+        if float(value) > 0.5:
+            if sensitive_dict[v]==1.0:
+                sum_protected+= marketed[u] #* (1/float(size_protected))
+                #sum_protected+= cvxpy.pos(marketed[u]+float(value)-1)
+            else:
+                sum_unprotected += marketed[u] #* (1/float(size_unprotected))
+                #sum_unprotected += cvxpy.pos(marketed[u]+float(value)-1)
     protected = sum_protected - sum_unprotected
     unprotected = sum_unprotected - sum_protected
     constraint+=[ protected<=delta , unprotected<=delta]
@@ -248,6 +262,7 @@ def make_optimization(sample_size, budget, delta):
             x+=1
         reachables.append(reachable)
      
+    objective_function = 0.0
     # make the optimization problem 
     for i in range (sample_size):
         objective_function += make_objective(buys[i], reward)
@@ -266,15 +281,13 @@ def make_optimization(sample_size, budget, delta):
     # make the fairness constraints
     for i in range (sample_size):
         fairness_constraint1 = convert_fairness_constraint1(sensitive, buys[i], delta)
-        constraints+=fairness_constraint1
-        #fairness_constraint2 = convert_fairness_constraint2(sensitive, reachable, marketed, delta)
+        #constraints+=fairness_constraint1
+        fairness_constraint2 = convert_fairness_constraint2(sensitive, reachable, marketed, delta)
         #constraints+=fairness_constraint2
         
     # make the range constraints [0,1]
     for var, value in var_dict.items():
         constraints += [0 <= value, value <= 1]
-    
-    
     
     #print('\nObjective_function\n%s'%('='*10))
     #print(objective_function)
@@ -284,6 +297,7 @@ def make_optimization(sample_size, budget, delta):
     
 
     # Solve the problem
+    objective_function = objective_function* (1/float(sample_size))
     objective = cvxpy.Maximize(objective_function)
     problem = cvxpy.Problem(objective, constraints)
     final_result = problem.solve()
@@ -307,7 +321,7 @@ def make_optimization(sample_size, budget, delta):
     print(problem.value)
     
     
-make_optimization(sample_size=10, budget = 2, delta = 0.001)
+make_optimization(sample_size=20, budget = 2, delta = 0.001)
 
 
 
