@@ -123,7 +123,7 @@ def ground_distribution():
     PRAGMA table_info(rule2);
     '''
     test_query(query)
- 
+    conn.close()
 
 ground_distribution()
 
