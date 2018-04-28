@@ -20,7 +20,7 @@ def test_query(query):
 # In[3]:
 
 def ground_distribution():
-    #~reachable(a,b)
+    # ~reachable(a,b)
     #trusts(a,b)->reachable(a,b)
     #reachable(a,b) & trusts(b,c) -> reachable(a,c)
     
