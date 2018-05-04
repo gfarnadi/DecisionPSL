@@ -42,11 +42,6 @@ func makeOneTerminal() ADD {
 	return add
 }
 
-func emptyADD() ADD {
-	var empty ADD
-	return empty
-}
-
 func multiplyADD(add ADD, constant float64) ADD {
 	/*TODO: think of a way to make a ADD after multiplying a constant number */
 	return ADD{addNodes: make([]AddNode, 0, 0), root: 0}
