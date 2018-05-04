@@ -27,7 +27,7 @@ type ADDSolution struct {
 }
 
 func makeZeroTerminal() ADD {
-	terminalNode := AddNode{id: -1, hi: 0, lo: 0, pweight: 0.0, nweight: 0.0, isDecision: false}
+	terminalNode := AddNode{id: -1, hi: 0, lo: 0, pweight: 0.0, nweight: 0.0, isDecision: false, isITE: false, isAdd: false}
 	nodes := make([]AddNode, 1, 1)
 	nodes[0] = terminalNode
 	add := ADD{addNodes: nodes, root: 0}
@@ -35,7 +35,7 @@ func makeZeroTerminal() ADD {
 }
 
 func makeOneTerminal() ADD {
-	terminalNode := AddNode{id: -2, hi: 0, lo: 0, pweight: 0.0, nweight: 0.0, isDecision: false}
+	terminalNode := AddNode{id: -2, hi: 0, lo: 0, pweight: 0.0, nweight: 0.0, isDecision: false, isITE: false, isAdd: false}
 	nodes := make([]AddNode, 1, 1)
 	nodes[0] = terminalNode
 	add := ADD{addNodes: nodes, root: 0}
@@ -64,7 +64,7 @@ func findMaxID(addNodes []AddNode) int {
 
 func addADD(add1 ADD, add2 ADD) ADD {
 	allNodes := append(add1.addNodes, add2.addNodes...)
-	nodeID := findMaxID(allNodes)
+	nodeID := findMaxID(allNodes)+ 1
 	node := AddNode{id: nodeID, hi: add1.root, lo: add2.root, pweight: 1.0, nweight: 1.0, isDecision: false, isITE: false, isAdd: true}
 	allNodes = append(allNodes, node)
 	return ADD{addNodes: allNodes, root: node.id}
