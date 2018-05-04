@@ -44,8 +44,13 @@ func makeOneTerminal() ADD {
 
 func multiplyADD(add ADD, constant float64) ADD {
 	/*TODO: think of a way to make a ADD after multiplying a constant number */
-	return ADD{addNodes: make([]AddNode, 0, 0), root: 0}
+	for i := 0; i < len(add.addNodes); i++ {
+		add.addNodes[i].nweight = add.addNodes[i].nweight * constant
+		add.addNodes[i].pweight = add.addNodes[i].pweight * constant
+	}
+	return add
 }
+
 func findMaxID(addNodes []AddNode) int {
 	/*TODO: id of the node should be the max id of the other nodes+1 */
 	maxID := 0
@@ -84,10 +89,10 @@ func probabilityDD(bdd BDD, solution map[int]bool, nodeID int) ADD {
 	node := bdd.bddNodes[nodeID]
 	variable := bdd.bddVars[node.varid]
 	var nodeValue ADD
-	hiADD := multiplyADD(probabilityDD(bdd, solution, node.hi), variable.pweight)
-	loADD := multiplyADD(probabilityDD(bdd, solution, node.lo), variable.nweight)
+	hiADD := probabilityDD(bdd, solution, node.hi)
+	loADD := probabilityDD(bdd, solution, node.lo)
 	if !variable.isDecision {
-		nodeValue = addADD(hiADD, loADD)
+		nodeValue = addADD(multiplyADD(hiADD, variable.pweight), multiplyADD(loADD, variable.nweight))
 	} else {
 		nodeValue = iteADD(node, hiADD, loADD)
 	}
