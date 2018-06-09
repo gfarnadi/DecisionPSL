@@ -1,12 +1,12 @@
 
 # coding: utf-8
 
-# In[12]:
+# In[2]:
 
 import networkx, os, random
 
 
-# In[13]:
+# In[3]:
 
 def save_file(path, content):
     try:
@@ -29,9 +29,9 @@ for node in list(graph):
     print(node)
 
 
-# In[15]:
+# In[9]:
 
-def create_synthetic_viral_marketing_graph(n,m,p):
+def create_synthetic_viral_marketing(n,m,p):
     graph = networkx.powerlaw_cluster_graph(n, m, p, seed=None)
     return graph
 
@@ -67,7 +67,7 @@ sensitive_file = "./sensitive.txt"
 generate_synthetic_viral_marketing(n,m,p, edge_file, node_file, sensitive_file)
 
 
-# In[17]:
+# In[5]:
 
 def making_epinion_data(epinion_file, edge_file, node_file, sensitive_file):
     graph=networkx.read_edgelist(epinion_file, nodetype=str)
@@ -94,6 +94,17 @@ def get_epinion_info(epinion_file):
 
 epinion_file = "./soc-Epinions1.txt"
 get_epinion_info(epinion_file)
+
+
+# In[16]:
+
+n = 20
+m = 6
+p = 0.3
+edge_file = "../sample/trust-20.txt"
+node_file = "../sample/user-20.txt"
+sensitive_file = "../sample/sensitive-20.txt"
+making_synthetic_viral_marketing_data(n, m, p, edge_file, node_file, sensitive_file)
 
 
 # In[ ]:
