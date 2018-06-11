@@ -1,0 +1,36 @@
+?::marketed(0).
+utility(buys(0), 5).
+utility(marketed(0), -2).
+person(0).
+?::marketed(1).
+utility(buys(1), 5).
+utility(marketed(1), -2).
+person(1).
+?::marketed(2).
+utility(buys(2), 5).
+utility(marketed(2), -2).
+person(2).
+?::marketed(3).
+utility(buys(3), 5).
+utility(marketed(3), -2).
+person(3).
+?::marketed(4).
+utility(buys(4), 5).
+utility(marketed(4), -2).
+person(4).
+?::marketed(5).
+utility(buys(5), 5).
+utility(marketed(5), -2).
+person(5).
+trusts(X,Y) :- trusts_directed(X,Y).
+trusts(X,Y) :- trusts_directed(Y,X).
+0.2 :: buy_from_marketing(_).
+0.3 :: buy_from_trust(_,_).
+buys(X) :-
+marketed(X),
+buy_from_marketing(X).
+buys(X) :-
+trusts(X,Y),
+buy_from_trust(X,Y),
+buys(Y).
+
