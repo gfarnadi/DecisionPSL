@@ -326,6 +326,8 @@ def generate_probog_program(edge_path, user_path, program_path):
         model_text+='\n'
     model_text+='trusts(X,Y) :- trusts_directed(X,Y).'+'\n'
     model_text+='trusts(X,Y) :- trusts_directed(Y,X).'+'\n'
+    model_text+='0.2 :: buy_from_marketing(_).'+'\n'
+    model_text+='0.3 :: buy_from_trust(_,_).'+'\n'
     for edge in edge_list:
         model_text+='trusts_directed(%s,%s).'%(edge[0],edge[1])
         model_text+='\n'
@@ -340,7 +342,7 @@ def generate_probog_program(edge_path, user_path, program_path):
     return model_text
 
 
-# In[37]:
+# In[40]:
 
 def generate_program(node_size):
     sample_graph_path = "../sample_graphs/"
@@ -351,7 +353,7 @@ def generate_program(node_size):
     return model_text
 
 
-# In[38]:
+# In[41]:
 
 def run_dtproblog(node_size):
     model_text = generate_program(node_size)
@@ -363,10 +365,10 @@ def run_dtproblog(node_size):
         print ('%s: %s' % (name, value))
 
 
-# In[39]:
+# In[43]:
 
-for node_size in [10,12,14]:
-    run_dtproblog(node_size)
+for node_size in [10,12,14,20,50]:
+    generate_program(node_size)
     
 
 

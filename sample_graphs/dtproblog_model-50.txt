@@ -200,6 +200,8 @@ utility(marketed(49), -2).
 person(49).
 trusts(X,Y) :- trusts_directed(X,Y).
 trusts(X,Y) :- trusts_directed(Y,X).
+0.2 :: buy_from_marketing(_).
+0.3 :: buy_from_trust(_,_).
 trusts_directed(0,43).
 trusts_directed(0,36).
 trusts_directed(0,49).
