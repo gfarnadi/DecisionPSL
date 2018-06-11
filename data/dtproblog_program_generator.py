@@ -1,7 +1,7 @@
 
 # coding: utf-8
 
-# In[4]:
+# In[1]:
 
 import os
 import sys
@@ -12,7 +12,7 @@ from problog.program import PrologString
 from problog.tasks import sample
 
 
-# In[5]:
+# In[2]:
 
 def save_file(path, content):
     try:
@@ -23,7 +23,7 @@ def save_file(path, content):
         out.write(content+'\n')
 
 
-# In[6]:
+# In[3]:
 
 def read_lines(file_path):
     array = []
@@ -35,7 +35,7 @@ def read_lines(file_path):
     return array
 
 
-# In[7]:
+# In[4]:
 
 def get_list(edge_path, user_path):
     edges_initial = read_lines(edge_path)
@@ -49,7 +49,7 @@ def get_list(edge_path, user_path):
     return edges, users
 
 
-# In[8]:
+# In[5]:
 
 def generate_dtproblog_program(edge_path, user_path, program_path):
     edge_list, user_list = get_list(edge_path, user_path)
@@ -84,14 +84,14 @@ def generate_dtproblog_program(edge_path, user_path, program_path):
     text +="absent(X,[Y|Z]):-X \= Y, absent(X,Z).\n"
 
     
-    save_file(text,program_path)
+#    save_file(text,program_path)
 
 
-# In[9]:
+# In[6]:
 
-for person in ('angelika', 'guy', 'bernd', 'kurt', 'theo',
-               'martijn', 'laura','ingo'):
-    print('?::marketed(%s).'%person)
+#for person in ('angelika', 'guy', 'bernd', 'kurt', 'theo',
+#               'martijn', 'laura','ingo'):
+#    print('?::marketed(%s).'%person)
 #     print('utility(buys(%s), 5).'%person)
 #     print('utility(marketed(%s), -2).'%person)
 
@@ -174,24 +174,25 @@ def solve_dtProblog():
         print ('%s: %s' % (name, value))
 
 
-# In[11]:
+# In[8]:
 
-get_ipython().run_cell_magic('time', '', 'solve_dtProblog()')
-
-
-# In[14]:
-
-4.2 / (2**7)
-
-
-# In[17]:
-
-for x in (10, 12, 14):
-    t = 0.0328125 * (2**x)
-    print(x, t)
+#%%time
+#solve_dtProblog()
 
 
 # In[9]:
+
+#4.2 / (2**7)
+
+
+# In[10]:
+
+#for x in (10, 12, 14):
+#    t = 0.0328125 * (2**x)
+#    print(x, t)
+
+
+# In[11]:
 
 def solve_dtProblog():
     model= '''
@@ -216,7 +217,7 @@ def solve_dtProblog():
     for name, value in decisions.items():
         print ('%s: %s' % (name, value))
         
-solve_dtProblog()
+#solve_dtProblog()
 
 
 # In[12]:
@@ -283,10 +284,10 @@ def solve():
     sdd = SDD.create_from(formula)
     return sdd.evaluate()
 
-get_ipython().magic('timeit solve()')
+#%timeit solve()
 
 
-# In[5]:
+# In[13]:
 
 model_text = ""
 for user in ['u1', 'u2']:
@@ -296,20 +297,20 @@ for user in ['u1', 'u2']:
     model_text+='\n'
     model_text+='utility(marketed(%s), -2).'%user
     model_text+='\n'
-print(model_text)
+#print(model_text)
     
 
 
-# In[10]:
+# In[14]:
 
 model_text = ""
 for edge in [('e1','e2'), ('e2','e4')]:
          model_text+='trusts_directed(%s,%s).'%(edge[0],edge[1])
          model_text+='\n'
-print(model_text)
+#print(model_text)
 
 
-# In[10]:
+# In[36]:
 
 def generate_probog_program(edge_path, user_path, program_path):
     edge_list, user_list = get_list(edge_path, user_path)
@@ -339,24 +340,37 @@ def generate_probog_program(edge_path, user_path, program_path):
     return model_text
 
 
-# In[11]:
+# In[37]:
 
 def generate_program(node_size):
     sample_graph_path = "../sample_graphs/"
     trust_file = sample_graph_path+"trust-"+str(node_size)+".txt"
     user_file = sample_graph_path+"user-"+str(node_size)+".txt"
     program_path = sample_graph_path+"dtproblog_model-"+str(node_size)+".txt"
-    generate_probog_program(trust_file, user_file, program_path)
+    model_text = generate_probog_program(trust_file, user_file, program_path)
+    return model_text
 
+
+# In[38]:
+
+def run_dtproblog(node_size):
+    model_text = generate_program(node_size)
+    print(model_text)
+    program = PrologString(model_text)
+    decisions, score, statistics = dtproblog(program)
+    print("++++++++ Program for node size = "+ str(node_size)+"++++++++")
+    for name, value in decisions.items():
+        print ('%s: %s' % (name, value))
+
+
+# In[39]:
+
+for node_size in [10,12,14]:
+    run_dtproblog(node_size)
+    
 
 
 # In[ ]:
 
-def run_dtproblog(node_size):
-    model = generate_program(node_size)
-    program = PrologString(model)
-    decisions, score, statistics = dtproblog(program)
 
-    for name, value in decisions.items():
-        print ('%s: %s' % (name, value))
 
