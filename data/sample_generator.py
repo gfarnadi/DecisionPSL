@@ -1,17 +1,17 @@
 
 # coding: utf-8
 
-# In[3]:
+# In[1]:
 
 import os
 import sys
-sys.path.append("/Users/Gfarnadi/Movies/problog/problogBitBucket")
+sys.path.append(os.environ["PROBLOG_HOME"])
 import problog
 from problog.tasks import sample
 from problog.program import PrologString
 
 
-# In[4]:
+# In[2]:
 
 def save_file(path, content):
     try:
@@ -22,7 +22,7 @@ def save_file(path, content):
         out.write(content+'\n')
 
 
-# In[88]:
+# In[3]:
 
 def read_lines(file_path):
     array = []
@@ -34,7 +34,7 @@ def read_lines(file_path):
     return array
 
 
-# In[89]:
+# In[4]:
 
 def get_list(edge_path, user_path):
     edges_initial = read_lines(edge_path)
@@ -48,7 +48,7 @@ def get_list(edge_path, user_path):
     return edges, users
 
 
-# In[90]:
+# In[5]:
 
 modeltext = """
     trusts_directed(bernd,ingo).
@@ -83,7 +83,7 @@ modeltext = """
 """
 
 
-# In[91]:
+# In[6]:
 
 def get_samples(modeltext, sample_size):
     model = PrologString(modeltext)
@@ -91,18 +91,18 @@ def get_samples(modeltext, sample_size):
     return result   
 
 
-# In[92]:
+# In[7]:
 
 result = get_samples(modeltext, sample_size=3)
 
 
-# In[93]:
+# In[8]:
 
 for i in result:
     print(i)
 
 
-# In[94]:
+# In[9]:
 
 def generate_model_text(sample_graph_path,node_size):
     model_text = ""
@@ -138,7 +138,7 @@ for i in result:
     print(i)
 
 
-# In[109]:
+# In[10]:
 
 import pickle
 def save_to_pickle(dict_to_save, path_to_save):
@@ -152,7 +152,7 @@ def read_pickle(pickle_path):
     return b
 
 
-# In[105]:
+# In[11]:
 
 def make_dictionary (sample_result):
     dict_to_save = {}
@@ -167,7 +167,7 @@ def make_dictionary (sample_result):
     return dict_to_save
 
 
-# In[106]:
+# In[12]:
 
 def save_samples(sample_graph_path, node_size, sample_size):
     model_text = generate_model_text(sample_graph_path,node_size)
@@ -177,10 +177,10 @@ def save_samples(sample_graph_path, node_size, sample_size):
     save_to_pickle(dict_to_save, path_to_save)
 
 
-# In[114]:
+# In[14]:
 
 sample_graph_path = "../sample_graphs/"
-save_samples(sample_graph_path, node_size = 50, sample_size = 1000)
+save_samples(sample_graph_path, node_size = 14, sample_size = 1000)
 
 
 # In[110]:

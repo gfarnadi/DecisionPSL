@@ -1,0 +1,173 @@
+?::marketed(0).
+utility(buys(0), 5).
+utility(marketed(0), -2).
+person(0).
+?::marketed(1).
+utility(buys(1), 5).
+utility(marketed(1), -2).
+person(1).
+?::marketed(2).
+utility(buys(2), 5).
+utility(marketed(2), -2).
+person(2).
+?::marketed(3).
+utility(buys(3), 5).
+utility(marketed(3), -2).
+person(3).
+?::marketed(4).
+utility(buys(4), 5).
+utility(marketed(4), -2).
+person(4).
+?::marketed(5).
+utility(buys(5), 5).
+utility(marketed(5), -2).
+person(5).
+?::marketed(6).
+utility(buys(6), 5).
+utility(marketed(6), -2).
+person(6).
+?::marketed(7).
+utility(buys(7), 5).
+utility(marketed(7), -2).
+person(7).
+?::marketed(8).
+utility(buys(8), 5).
+utility(marketed(8), -2).
+person(8).
+?::marketed(9).
+utility(buys(9), 5).
+utility(marketed(9), -2).
+person(9).
+?::marketed(10).
+utility(buys(10), 5).
+utility(marketed(10), -2).
+person(10).
+?::marketed(11).
+utility(buys(11), 5).
+utility(marketed(11), -2).
+person(11).
+?::marketed(12).
+utility(buys(12), 5).
+utility(marketed(12), -2).
+person(12).
+?::marketed(13).
+utility(buys(13), 5).
+utility(marketed(13), -2).
+person(13).
+?::marketed(14).
+utility(buys(14), 5).
+utility(marketed(14), -2).
+person(14).
+?::marketed(15).
+utility(buys(15), 5).
+utility(marketed(15), -2).
+person(15).
+?::marketed(16).
+utility(buys(16), 5).
+utility(marketed(16), -2).
+person(16).
+?::marketed(17).
+utility(buys(17), 5).
+utility(marketed(17), -2).
+person(17).
+?::marketed(18).
+utility(buys(18), 5).
+utility(marketed(18), -2).
+person(18).
+?::marketed(19).
+utility(buys(19), 5).
+utility(marketed(19), -2).
+person(19).
+trusts(X,Y) :- trusts_directed(X,Y).
+trusts(X,Y) :- trusts_directed(Y,X).
+trusts_directed(0,16).
+trusts_directed(0,17).
+trusts_directed(0,6).
+trusts_directed(0,8).
+trusts_directed(0,10).
+trusts_directed(0,13).
+trusts_directed(1,16).
+trusts_directed(1,6).
+trusts_directed(1,7).
+trusts_directed(2,17).
+trusts_directed(2,6).
+trusts_directed(2,7).
+trusts_directed(2,8).
+trusts_directed(2,9).
+trusts_directed(2,10).
+trusts_directed(2,14).
+trusts_directed(3,17).
+trusts_directed(3,19).
+trusts_directed(3,6).
+trusts_directed(3,7).
+trusts_directed(3,9).
+trusts_directed(3,11).
+trusts_directed(3,14).
+trusts_directed(4,18).
+trusts_directed(4,6).
+trusts_directed(4,7).
+trusts_directed(4,8).
+trusts_directed(4,9).
+trusts_directed(4,10).
+trusts_directed(4,11).
+trusts_directed(4,13).
+trusts_directed(4,14).
+trusts_directed(4,15).
+trusts_directed(5,6).
+trusts_directed(5,7).
+trusts_directed(5,8).
+trusts_directed(5,11).
+trusts_directed(5,13).
+trusts_directed(5,14).
+trusts_directed(6,7).
+trusts_directed(6,8).
+trusts_directed(6,9).
+trusts_directed(6,10).
+trusts_directed(6,12).
+trusts_directed(6,13).
+trusts_directed(6,14).
+trusts_directed(6,15).
+trusts_directed(6,16).
+trusts_directed(6,19).
+trusts_directed(7,8).
+trusts_directed(7,9).
+trusts_directed(7,12).
+trusts_directed(7,13).
+trusts_directed(7,18).
+trusts_directed(7,19).
+trusts_directed(8,10).
+trusts_directed(8,11).
+trusts_directed(8,12).
+trusts_directed(8,14).
+trusts_directed(8,16).
+trusts_directed(8,18).
+trusts_directed(8,19).
+trusts_directed(9,10).
+trusts_directed(9,11).
+trusts_directed(9,12).
+trusts_directed(9,15).
+trusts_directed(9,16).
+trusts_directed(9,17).
+trusts_directed(9,18).
+trusts_directed(9,19).
+trusts_directed(10,11).
+trusts_directed(10,12).
+trusts_directed(10,13).
+trusts_directed(10,15).
+trusts_directed(10,16).
+trusts_directed(10,18).
+trusts_directed(11,17).
+trusts_directed(11,12).
+trusts_directed(11,15).
+trusts_directed(12,17).
+trusts_directed(12,18).
+trusts_directed(14,15).
+trusts_directed(16,19).
+buys(X) :-
+marketed(X),
+buy_from_marketing(X).
+buys(X) :-
+trusts(X,Y),
+buy_from_trust(X,Y),
+buys(Y).
+

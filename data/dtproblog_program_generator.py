@@ -1,18 +1,18 @@
 
 # coding: utf-8
 
-# In[1]:
+# In[4]:
 
 import os
 import sys
-sys.path.append("/Users/Gfarnadi/Movies/problog/problogBitBucket")
+sys.path.append(os.environ["PROBLOG_HOME"])
 import problog
 from problog.tasks.dtproblog import dtproblog
 from problog.program import PrologString
 from problog.tasks import sample
 
 
-# In[2]:
+# In[5]:
 
 def save_file(path, content):
     try:
@@ -23,34 +23,33 @@ def save_file(path, content):
         out.write(content+'\n')
 
 
-# In[3]:
+# In[6]:
 
 def read_lines(file_path):
     array = []
     with open(file_path, "r") as ins:
         for line in ins:
-            array.append(line)
+            line = line.replace("\n","").replace(" ","")
+            if len(line)>0:
+                array.append(line)
     return array
 
 
-# In[4]:
+# In[7]:
 
 def get_list(edge_path, user_path):
     edges_initial = read_lines(edge_path)
     edges = []
     for e in edges_initial:
         edge = e.split("\t")
-        edges.append[edge]    
+        #print(edge)
+        if len(edge)>1:
+            edges.append((edge[0], edge[1]))    
     users = read_lines(user_path)
     return edges, users
 
 
-# In[ ]:
-
-
-
-
-# In[5]:
+# In[8]:
 
 def generate_dtproblog_program(edge_path, user_path, program_path):
     edge_list, user_list = get_list(edge_path, user_path)
@@ -88,15 +87,13 @@ def generate_dtproblog_program(edge_path, user_path, program_path):
     save_file(text,program_path)
 
 
-# In[6]:
+# In[9]:
 
-def generate_probog_program(edge_path, user_path, program_path):
-    edge_list, user_list = get_list(edge_path, user_path)
-    
-    
-    
-    
-    
+for person in ('angelika', 'guy', 'bernd', 'kurt', 'theo',
+               'martijn', 'laura','ingo'):
+    print('?::marketed(%s).'%person)
+#     print('utility(buys(%s), 5).'%person)
+#     print('utility(marketed(%s), -2).'%person)
 
 
 # In[7]:
@@ -105,19 +102,31 @@ def generate_probog_program(edge_path, user_path, program_path):
 def solve_dtProblog():
     model= '''
     % Decisions
+    ?::marketed(angelika).
     ?::marketed(guy).
     ?::marketed(bernd).
-    ?::marketed(ingo).
+    ?::marketed(kurt).
     ?::marketed(theo).
+    ?::marketed(martijn).
+    ?::marketed(laura).
+    ?::marketed(ingo).
  
+    utility(buys(angelika), 5).
+    utility(marketed(angelika), -2).
     utility(buys(guy), 5).
     utility(marketed(guy), -2).
     utility(buys(bernd), 5).
     utility(marketed(bernd), -2).
-    utility(buys(ingo), 5).
-    utility(marketed(ingo), -2).
+    utility(buys(kurt), 5).
+    utility(marketed(kurt), -2).
     utility(buys(theo), 5).
     utility(marketed(theo), -2).
+    utility(buys(martijn), 5).
+    utility(marketed(martijn), -2).
+    utility(buys(laura), 5).
+    utility(marketed(laura), -2).
+    utility(buys(ingo), 5).
+    utility(marketed(ingo), -2).
 
     % Probabilistic facts
     0.2 :: buy_from_marketing(_).
@@ -165,12 +174,24 @@ def solve_dtProblog():
         print ('%s: %s' % (name, value))
 
 
-# In[8]:
+# In[11]:
 
-solve_dtProblog()
+get_ipython().run_cell_magic('time', '', 'solve_dtProblog()')
 
 
-# In[ ]:
+# In[14]:
+
+4.2 / (2**7)
+
+
+# In[17]:
+
+for x in (10, 12, 14):
+    t = 0.0328125 * (2**x)
+    print(x, t)
+
+
+# In[9]:
 
 def solve_dtProblog():
     model= '''
@@ -198,7 +219,7 @@ def solve_dtProblog():
 solve_dtProblog()
 
 
-# In[15]:
+# In[12]:
 
 from problog.program import PrologString
 from problog import get_evaluatable
@@ -262,13 +283,80 @@ def solve():
     sdd = SDD.create_from(formula)
     return sdd.evaluate()
 
+get_ipython().magic('timeit solve()')
 
-   
 
-solve()
+# In[5]:
+
+model_text = ""
+for user in ['u1', 'u2']:
+    model_text+='?::marketed(%s).'%user
+    model_text+='\n'
+    model_text+='utility(buys(%s), 5).'%user
+    model_text+='\n'
+    model_text+='utility(marketed(%s), -2).'%user
+    model_text+='\n'
+print(model_text)
+    
+
+
+# In[10]:
+
+model_text = ""
+for edge in [('e1','e2'), ('e2','e4')]:
+         model_text+='trusts_directed(%s,%s).'%(edge[0],edge[1])
+         model_text+='\n'
+print(model_text)
+
+
+# In[10]:
+
+def generate_probog_program(edge_path, user_path, program_path):
+    edge_list, user_list = get_list(edge_path, user_path)
+    model_text = ""
+    for user in user_list:
+        model_text+='?::marketed(%s).'%user
+        model_text+='\n'
+        model_text+='utility(buys(%s), 5).'%user
+        model_text+='\n'
+        model_text+='utility(marketed(%s), -2).'%user
+        model_text+='\n'
+        model_text+='person(%s).'%user
+        model_text+='\n'
+    model_text+='trusts(X,Y) :- trusts_directed(X,Y).'+'\n'
+    model_text+='trusts(X,Y) :- trusts_directed(Y,X).'+'\n'
+    for edge in edge_list:
+        model_text+='trusts_directed(%s,%s).'%(edge[0],edge[1])
+        model_text+='\n'
+    model_text+='buys(X) :-'+'\n'
+    model_text+='marketed(X),'+'\n'
+    model_text+='buy_from_marketing(X).'+'\n'
+    model_text+='buys(X) :-'+'\n'
+    model_text+='trusts(X,Y),'+'\n'
+    model_text+='buy_from_trust(X,Y),'+'\n'
+    model_text+='buys(Y).'+'\n'
+    save_file(program_path, model_text)
+    return model_text
+
+
+# In[11]:
+
+def generate_program(node_size):
+    sample_graph_path = "../sample_graphs/"
+    trust_file = sample_graph_path+"trust-"+str(node_size)+".txt"
+    user_file = sample_graph_path+"user-"+str(node_size)+".txt"
+    program_path = sample_graph_path+"dtproblog_model-"+str(node_size)+".txt"
+    generate_probog_program(trust_file, user_file, program_path)
+
 
 
 # In[ ]:
 
+def run_dtproblog(node_size):
+    model = generate_program(node_size)
+    program = PrologString(model)
+    decisions, score, statistics = dtproblog(program)
 
+    for name, value in decisions.items():
+        print ('%s: %s' % (name, value))
 
