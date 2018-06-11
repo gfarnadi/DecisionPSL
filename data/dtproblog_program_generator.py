@@ -23,7 +23,7 @@ def save_file(path, content):
         out.write(content+'\n')
 
 
-# In[4]:
+# In[3]:
 
 def read_lines(file_path):
     array = []
@@ -33,7 +33,7 @@ def read_lines(file_path):
     return array
 
 
-# In[5]:
+# In[4]:
 
 def get_list(edge_path, user_path):
     edges_initial = read_lines(edge_path)
@@ -50,7 +50,7 @@ def get_list(edge_path, user_path):
 
 
 
-# In[6]:
+# In[5]:
 
 def generate_dtproblog_program(edge_path, user_path, program_path):
     edge_list, user_list = get_list(edge_path, user_path)
@@ -88,7 +88,7 @@ def generate_dtproblog_program(edge_path, user_path, program_path):
     save_file(text,program_path)
 
 
-# In[ ]:
+# In[6]:
 
 def generate_probog_program(edge_path, user_path, program_path):
     edge_list, user_list = get_list(edge_path, user_path)
@@ -105,10 +105,19 @@ def generate_probog_program(edge_path, user_path, program_path):
 def solve_dtProblog():
     model= '''
     % Decisions
-    ?::marketed(P) :- person(P).
-
-    utility(buys(P), 5) :- person(P).
-    utility(marketed(P), -2) :- person(P).
+    ?::marketed(guy).
+    ?::marketed(bernd).
+    ?::marketed(ingo).
+    ?::marketed(theo).
+ 
+    utility(buys(guy), 5).
+    utility(marketed(guy), -2).
+    utility(buys(bernd), 5).
+    utility(marketed(bernd), -2).
+    utility(buys(ingo), 5).
+    utility(marketed(ingo), -2).
+    utility(buys(theo), 5).
+    utility(marketed(theo), -2).
 
     % Probabilistic facts
     0.2 :: buy_from_marketing(_).
@@ -161,7 +170,7 @@ def solve_dtProblog():
 solve_dtProblog()
 
 
-# In[5]:
+# In[ ]:
 
 def solve_dtProblog():
     model= '''
@@ -187,6 +196,76 @@ def solve_dtProblog():
         print ('%s: %s' % (name, value))
         
 solve_dtProblog()
+
+
+# In[15]:
+
+from problog.program import PrologString
+from problog import get_evaluatable
+from problog.program import PrologFile
+from problog.formula import LogicFormula
+from problog.sdd_formula import SDD
+from problog.cnf_formula import CNF
+
+def solve():
+    model= '''
+    % Decisions
+    0.1::marketed(guy).
+    0.2::marketed(bernd).
+    0.5::marketed(ingo).
+    0.3::marketed(theo).
+
+    % Probabilistic facts
+    0.2 :: buy_from_marketing(_).
+    0.3 :: buy_from_trust(_,_).
+
+    % Background knowledge
+    person(bernd).
+    person(ingo).
+    person(theo).
+    person(angelika).
+    person(guy).
+    person(martijn).
+    person(laura).
+    person(kurt).
+
+    trusts(X,Y) :- trusts_directed(X,Y).
+    trusts(X,Y) :- trusts_directed(Y,X).
+
+    trusts_directed(bernd,ingo).
+    trusts_directed(ingo,theo).
+    trusts_directed(theo,angelika).
+    trusts_directed(bernd,martijn).
+    trusts_directed(ingo,martijn).
+    trusts_directed(martijn,guy).
+    trusts_directed(guy,theo).
+    trusts_directed(guy,angelika).
+    trusts_directed(laura,ingo).
+    trusts_directed(laura,theo).
+    trusts_directed(laura,guy).
+    trusts_directed(laura,martijn).
+    trusts_directed(kurt,bernd).
+
+    buys(X) :-
+         marketed(X),
+         buy_from_marketing(X).
+    buys(X) :-
+         trusts(X,Y),
+         buy_from_trust(X,Y),
+         buys(Y).
+         
+    query(buys(kurt)).
+'''
+    
+    program = PrologString(model)
+    formula = LogicFormula.create_from(program)
+    sdd = SDD.create_from(formula)
+    return sdd.evaluate()
+
+
+   
+
+solve()
 
 
 # In[ ]:
