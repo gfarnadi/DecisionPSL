@@ -37,10 +37,10 @@ trusts(X,Y) :- trusts_directed(Y,X).
 trusts_directed(0,6).
 trusts_directed(0,7).
 trusts_directed(1,6).
+trusts_directed(1,7).
 trusts_directed(2,6).
 trusts_directed(2,7).
 trusts_directed(3,6).
-trusts_directed(3,7).
 trusts_directed(4,6).
 trusts_directed(4,7).
 trusts_directed(5,6).
