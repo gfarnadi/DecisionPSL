@@ -321,7 +321,7 @@ def make_optimization(sample_size, budget, delta):
     print(problem.value)
     
     
-make_optimization(sample_size=20, budget = 2, delta = 0.001)
+#make_optimization(sample_size=20, budget = 2, delta = 0.001)
 
 
 

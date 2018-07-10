@@ -1,18 +1,11 @@
-
 # coding: utf-8
-
-# In[1]:
 
 import os
 import sys
 sys.path.append(os.environ["PROBLOG_HOME"])
-import problog
 from problog.tasks.dtproblog import dtproblog
 from problog.program import PrologString
-from problog.tasks import sample
 
-
-# In[2]:
 
 def save_file(path, content):
     try:
@@ -22,8 +15,6 @@ def save_file(path, content):
     with open(path, 'a') as out:
         out.write(content+'\n')
 
-
-# In[3]:
 
 def read_lines(file_path):
     array = []
@@ -35,21 +26,16 @@ def read_lines(file_path):
     return array
 
 
-# In[4]:
-
 def get_list(edge_path, user_path):
     edges_initial = read_lines(edge_path)
     edges = []
     for e in edges_initial:
         edge = e.split("\t")
-        #print(edge)
         if len(edge)>1:
             edges.append((edge[0], edge[1]))    
     users = read_lines(user_path)
     return edges, users
 
-
-# In[5]:
 
 def generate_dtproblog_program(edge_path, user_path, program_path):
     edge_list, user_list = get_list(edge_path, user_path)
@@ -83,21 +69,6 @@ def generate_dtproblog_program(edge_path, user_path, program_path):
     text +="    buys(Y, [Y|Visited]).\n"
     text +="absent(_,[]).\n"
     text +="absent(X,[Y|Z]):-X \= Y, absent(X,Z).\n"
-
-    
-#    save_file(text,program_path)
-
-
-# In[6]:
-
-#for person in ('angelika', 'guy', 'bernd', 'kurt', 'theo',
-#               'martijn', 'laura','ingo'):
-#    print('?::marketed(%s).'%person)
-#     print('utility(buys(%s), 5).'%person)
-#     print('utility(marketed(%s), -2).'%person)
-
-
-# In[7]:
 
 
 def solve_dtProblog():
@@ -173,62 +144,10 @@ def solve_dtProblog():
 
     for name, value in decisions.items():
         print ('%s: %s' % (name, value))
-
-
-# In[8]:
-
-#%%time
-#solve_dtProblog()
-
-
-# In[9]:
-
-#4.2 / (2**7)
-
-
-# In[10]:
-
-#for x in (10, 12, 14):
-#    t = 0.0328125 * (2**x)
-#    print(x, t)
-
-
-# In[11]:
-
-def solve_dtProblog():
-    model= '''
-    0.3::rain.
-    0.5::wind.
-    ?::umbrella.
-    ?::raincoat.
-
-    broken_umbrella :- umbrella, rain, wind.
-    dry :- rain, raincoat.
-    dry :- rain, umbrella, not broken_umbrella.
-    dry :- not(rain).
-
-    utility(broken_umbrella, -40).
-    utility(raincoat, -20).
-    utility(umbrella, -2).
-    utility(dry, 60).
-'''
-    program = PrologString(model)
-    decisions, score, statistics = dtproblog(program)
-
-    for name, value in decisions.items():
-        print ('%s: %s' % (name, value))
         
-#solve_dtProblog()
 
-
-# In[12]:
-
-from problog.program import PrologString
-from problog import get_evaluatable
-from problog.program import PrologFile
 from problog.formula import LogicFormula
 from problog.sdd_formula import SDD
-from problog.cnf_formula import CNF
 
 def solve():
     model= '''
@@ -285,6 +204,7 @@ def solve():
     sdd = SDD.create_from(formula)
     return sdd.evaluate()
 
+<<<<<<< HEAD
 #%timeit solve()
 
 
@@ -312,6 +232,8 @@ for edge in [('e1','e2'), ('e2','e4')]:
 
 
 # In[19]:
+=======
+>>>>>>> 0afb79508ed475e7caded543f35d5d44d4ecfbc2
 
 def generate_probog_program(edge_path, user_path, program_path):
     edge_list, user_list = get_list(edge_path, user_path)
@@ -344,8 +266,11 @@ def generate_probog_program(edge_path, user_path, program_path):
     return model_text
 
 
+<<<<<<< HEAD
 # In[20]:
 
+=======
+>>>>>>> 0afb79508ed475e7caded543f35d5d44d4ecfbc2
 def generate_program(node_size):
     sample_graph_path = "../sample_graphs2/"
     trust_file = sample_graph_path+"data/trust-"+str(node_size)+".txt"
@@ -355,13 +280,16 @@ def generate_program(node_size):
     return model_text
 
 
+<<<<<<< HEAD
 # In[21]:
 
+=======
+>>>>>>> 0afb79508ed475e7caded543f35d5d44d4ecfbc2
 def run_dtproblog(node_size):
     model_text = generate_program(node_size)
-    print(model_text)
     program = PrologString(model_text)
     decisions, score, statistics = dtproblog(program)
+<<<<<<< HEAD
     print("++++++++ Program for node size = "+ str(node_size)+"++++++++")
     for name, value in decisions.items():
         print ('%s: %s' % (name, value))
@@ -378,3 +306,6 @@ for node_size in [8,10,12,14,20]:
 
 
 
+=======
+    return decisions, score, statistics
+>>>>>>> 0afb79508ed475e7caded543f35d5d44d4ecfbc2
