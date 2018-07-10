@@ -93,16 +93,18 @@ def get_samples(modeltext, sample_size):
 
 # In[7]:
 
-result = get_samples(modeltext, sample_size=3)
+def test_model(modeltext):
+    result = get_samples(modeltext, sample_size=3)
+    for i in result:
+        print(i)
+
+
+# In[ ]:
+
+
 
 
 # In[8]:
-
-for i in result:
-    print(i)
-
-
-# In[9]:
 
 def generate_model_text(sample_graph_path,node_size):
     model_text = ""
@@ -110,9 +112,11 @@ def generate_model_text(sample_graph_path,node_size):
 0.4:: trusts(X,Y) :- trusts_directed(Y,X).
 0.4:: trusts(X,Y) :- trusts_directed(X,Y).
 0.3:: trusts(X,Y) :- trusts_directed(X,Z), trusts(Z,Y).
+0.2:: buy_from_marketing(_).
+0.3:: buy_from_trust(_,_).
     """
-    trust_file = sample_graph_path+"trust-"+str(node_size)+".txt"
-    user_file = sample_graph_path+"user-"+str(node_size)+".txt"
+    trust_file = sample_graph_path+"data/trust-"+str(node_size)+".txt"
+    user_file = sample_graph_path+"data/user-"+str(node_size)+".txt"
     trusts, users = get_list(trust_file,user_file)
     for trust in trusts:
         model_text+="trusts_directed("+trust[0]+","+trust[1]+")."+'\n'
@@ -122,20 +126,21 @@ def generate_model_text(sample_graph_path,node_size):
         for user2 in users:
             if user1!= user2:
                 query_text+="query(trusts("+user1+","+user2+"))."+'\n'
+                query_text+="query(buy_from_trust("+user1+","+user2+"))."+'\n'
+    for user in users:
+        query_text+="query(buy_from_marketing("+user+"))."+'\n'
     model_text+= query_text+"\n" 
-    model_path = sample_graph_path+"problog_model-"+str(node_size)+".txt"
+    model_path = sample_graph_path+"model/"+"problog_model-"+str(node_size)+".txt"
     save_file(model_path, model_text)
     return model_text
 
 
-# In[95]:
+# In[9]:
 
-sample_graph_path = "../sample_graphs/"
-model_text = generate_model_text(sample_graph_path,node_size=10)
+#sample_graph_path = "../sample_graphs/"
+#model_text = generate_model_text(sample_graph_path,node_size=10)
 
-result = get_samples(model_text, sample_size=3)
-for i in result:
-    print(i)
+#test_model(model_text)
 
 
 # In[10]:
@@ -172,25 +177,25 @@ def make_dictionary (sample_result):
 def save_samples(sample_graph_path, node_size, sample_size):
     model_text = generate_model_text(sample_graph_path,node_size)
     result = get_samples(model_text, sample_size)
-    path_to_save = sample_graph_path+"generated_sample_dict-"+str(node_size)+"("+str(sample_size)+")"+".pickle"
+    path_to_save = sample_graph_path+"sample/generated_sample_dict-"+str(node_size)+"("+str(sample_size)+")"+".pickle"
     dict_to_save = make_dictionary (result)
     save_to_pickle(dict_to_save, path_to_save)
 
 
-# In[14]:
+# In[21]:
 
-sample_graph_path = "../sample_graphs/"
-save_samples(sample_graph_path, node_size = 14, sample_size = 1000)
+sample_graph_path = "../sample_graphs2/"
+save_samples(sample_graph_path, node_size = 20, sample_size = 1000)
 
 
-# In[110]:
+# In[16]:
 
-sample_graph_path = "../sample_graphs/"
-pickle_path = sample_graph_path+"generated_sample_dict-"+str(10)+"("+str(10)+")"+".pickle"
+sample_graph_path = "../sample_graphs2/"
+pickle_path = sample_graph_path+"sample/generated_sample_dict-"+str(8)+"("+str(1000)+")"+".pickle"
 test_dict = read_pickle(pickle_path)
 
 
-# In[111]:
+# In[17]:
 
 test_dict
 

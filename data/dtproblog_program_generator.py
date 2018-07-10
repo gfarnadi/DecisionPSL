@@ -65,8 +65,9 @@ def generate_dtproblog_program(edge_path, user_path, program_path):
     for user in user_list:
         text+= "person("+str(user)+").\n"
         
-    text +=" trusts(X,Y) :- trusts_directed(X,Y).\n"
-    text +="trusts(X,Y) :- trusts_directed(Y,X).\n"
+    text +="0.4:: trusts(X,Y) :- trusts_directed(Y,X).\n"
+    text +="0.4:: trusts(X,Y) :- trusts_directed(X,Y).\n"
+    text +="0.3:: trusts(X,Y) :- trusts_directed(X,Z), trusts(Z,Y).\n"
     
     for edge in edge_list:
         text+= "trusts_directed("+str(edge[0])+","+str(edge[1])+").\n" 
@@ -310,7 +311,7 @@ for edge in [('e1','e2'), ('e2','e4')]:
 #print(model_text)
 
 
-# In[36]:
+# In[19]:
 
 def generate_probog_program(edge_path, user_path, program_path):
     edge_list, user_list = get_list(edge_path, user_path)
@@ -324,8 +325,9 @@ def generate_probog_program(edge_path, user_path, program_path):
         model_text+='\n'
         model_text+='person(%s).'%user
         model_text+='\n'
-    model_text+='trusts(X,Y) :- trusts_directed(X,Y).'+'\n'
-    model_text+='trusts(X,Y) :- trusts_directed(Y,X).'+'\n'
+    model_text+="0.4:: trusts(X,Y) :- trusts_directed(Y,X).\n"
+    model_text+="0.4:: trusts(X,Y) :- trusts_directed(X,Y).\n"
+    model_text+="0.3:: trusts(X,Y) :- trusts_directed(X,Z), trusts(Z,Y).\n"
     model_text+='0.2 :: buy_from_marketing(_).'+'\n'
     model_text+='0.3 :: buy_from_trust(_,_).'+'\n'
     for edge in edge_list:
@@ -342,18 +344,18 @@ def generate_probog_program(edge_path, user_path, program_path):
     return model_text
 
 
-# In[40]:
+# In[20]:
 
 def generate_program(node_size):
-    sample_graph_path = "../sample_graphs/"
-    trust_file = sample_graph_path+"trust-"+str(node_size)+".txt"
-    user_file = sample_graph_path+"user-"+str(node_size)+".txt"
-    program_path = sample_graph_path+"dtproblog_model-"+str(node_size)+".txt"
+    sample_graph_path = "../sample_graphs2/"
+    trust_file = sample_graph_path+"data/trust-"+str(node_size)+".txt"
+    user_file = sample_graph_path+"data/user-"+str(node_size)+".txt"
+    program_path = sample_graph_path+"model/dtproblog_model-"+str(node_size)+".txt"
     model_text = generate_probog_program(trust_file, user_file, program_path)
     return model_text
 
 
-# In[41]:
+# In[21]:
 
 def run_dtproblog(node_size):
     model_text = generate_program(node_size)
@@ -365,9 +367,9 @@ def run_dtproblog(node_size):
         print ('%s: %s' % (name, value))
 
 
-# In[43]:
+# In[22]:
 
-for node_size in [10,12,14,20,50]:
+for node_size in [8,10,12,14,20]:
     generate_program(node_size)
     
 
