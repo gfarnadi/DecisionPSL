@@ -1,7 +1,7 @@
 
 # coding: utf-8
 
-# In[1]:
+# In[ ]:
 
 import os
 import sys
@@ -13,7 +13,7 @@ from problog.tasks import sample
 import time
 
 
-# In[2]:
+# In[ ]:
 
 def save_file(path, content):
     try:
@@ -24,7 +24,7 @@ def save_file(path, content):
         out.write(content+'\n')
 
 
-# In[3]:
+# In[ ]:
 
 def run_dtproblog(node_size, model_path, output_file):
     text = ''
@@ -46,7 +46,7 @@ def run_dtproblog(node_size, model_path, output_file):
     save_file(output_file, text)    
 
 
-# In[4]:
+# In[ ]:
 
 def get_program(model_path, node_size):
     file_path = model_path+'dtproblog_model-'+str(node_size)+'.txt'
@@ -58,8 +58,7 @@ def get_program(model_path, node_size):
 
 # In[ ]:
 
-model_path = '../sample_graphs2/'
+model_path = '../sample_graphs2/model/'
 for node_size in [8,10,12,14]:
-    output_file = model_path+'output/dtproblog_model-'+str(node_size)+'.txt'
-    run_dtproblog(node_size, model_path+'model/', output_file)
+    run_dtproblog(node_size, model_path, output_file)
 
