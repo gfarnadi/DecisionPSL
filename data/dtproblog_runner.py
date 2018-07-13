@@ -1,7 +1,5 @@
-
+#!/usr/bin/env python
 # coding: utf-8
-
-# In[1]:
 
 import os
 import sys
@@ -13,8 +11,6 @@ from problog.tasks import sample
 import time
 
 
-# In[2]:
-
 def save_file(path, content):
     try:
         os.remove(path)
@@ -23,8 +19,6 @@ def save_file(path, content):
     with open(path, 'a') as out:
         out.write(content+'\n')
 
-
-# In[3]:
 
 def run_dtproblog(node_size, model_path, output_file):
     text = ''
@@ -46,20 +40,21 @@ def run_dtproblog(node_size, model_path, output_file):
     save_file(output_file, text)    
 
 
-# In[4]:
-
 def get_program(model_path, node_size):
     file_path = model_path+'dtproblog_model-'+str(node_size)+'.txt'
     model_text = ''
-    with open(model_path, 'r') as myfile:
+    with open(file_path, 'r') as myfile:
         model_text = myfile.read()
     return model_text
 
 
-# In[ ]:
-
-model_path = '../sample_graphs2/'
-for node_size in [8,10,12,14]:
+if __name__  == '__main__':
+    if len(sys.argv) < 2:
+        print('usage: %s NUM_NODES'%sys.argv[0])
+        exit(1)
+        
+    model_path = '../sample_graphs2/'
+    node_size = int(sys.argv[1])
     output_file = model_path+'output/dtproblog_model-'+str(node_size)+'.txt'
     run_dtproblog(node_size, model_path+'model/', output_file)
 
