@@ -78,9 +78,10 @@ person(18).
 utility(buys(19), 5).
 utility(marketed(19), -2).
 person(19).
-0.4:: trusts(X,Y) :- trusts_directed(Y,X).
-0.4:: trusts(X,Y) :- trusts_directed(X,Y).
-0.3:: trusts(X,Y) :- trusts_directed(X,Z), trusts(Z,Y).
+1.0:: trusts_undirected(X,Y) :- trusts_directed(X,Y).
+1.0:: trusts_undirected(X,Y) :- trusts_directed(Y,X).
+0.4:: trusts(X,Y) :- trusts_undirected(X,Y).
+0.3:: trusts(X,Y) :- trusts_undirected(X,Z), trusts(Z,Y).
 0.2 :: buy_from_marketing(_).
 0.3 :: buy_from_trust(_,_).
 trusts_directed(0,17).

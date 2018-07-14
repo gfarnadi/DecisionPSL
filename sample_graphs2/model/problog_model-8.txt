@@ -11,9 +11,10 @@ trusts_directed(5,6).
 trusts_directed(5,7).
 trusts_directed(6,7).
 
-0.4:: trusts(X,Y) :- trusts_directed(Y,X).
-0.4:: trusts(X,Y) :- trusts_directed(X,Y).
-0.3:: trusts(X,Y) :- trusts_directed(X,Z), trusts(Z,Y).
+1.0:: trusts_undirected(X,Y) :- trusts_directed(X,Y).
+1.0:: trusts_undirected(X,Y) :- trusts_directed(Y,X).
+0.4:: trusts(X,Y) :- trusts_undirected(X,Y).
+0.3:: trusts(X,Y) :- trusts_undirected(X,Z), trusts(Z,Y).
 0.2:: buy_from_marketing(_).
 0.3:: buy_from_trust(_,_).
     
