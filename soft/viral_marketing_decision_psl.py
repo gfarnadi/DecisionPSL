@@ -65,8 +65,8 @@ def create_db_from_graph(sample_graph_folder, node_size):
             line = line.split('\t')
             sensitive_data.append(tuple(line))
     c.executemany('INSERT INTO user VALUES (?, 1.0)', user_data)
-    c.executemany('INSERT INTO cost VALUES (?, 1.0)', user_data)
-    c.executemany('INSERT INTO reward VALUES (?, 1.0)', user_data)
+    c.executemany('INSERT INTO cost VALUES (?, -2.0)', user_data)
+    c.executemany('INSERT INTO reward VALUES (?, 5.0)', user_data)
     c.executemany('INSERT INTO sensitive VALUES (?, ?)', sensitive_data)
     make_reachable()
     conn.commit() 
@@ -108,21 +108,23 @@ def make_objective(buy, reward):
 
 # In[5]:
 
-def convert_constraint1(marketed, buy):
-    #marketed(u) & user(u) ->buy(u)
+def convert_constraint1(marketed, buy, buy_from_marketing):
+     #TODO: add buy from marketing
+    #marketed(u) & buy_from_marketing(u) ->buy(u)
     constraint = []
     obj_function = 0.0
     for uid,value in buy.items():
-        obj_function+=cvxpy.pos(marketed[uid]-buy[uid])
-        constraint.append(cvxpy.pos(marketed[uid]-buy[uid]))
+        obj_function+=cvxpy.pos(cvxpy.pos(marketed[uid]+buy_from_marketing[uid]-1.0)-buy[uid])
+        constraint.append(cvxpy.pos(cvxpy.pos(marketed[uid]+buy_from_marketing[uid]-1.0)-buy[uid]))
         #constraint.append(marketed[uid]-buy[uid]<=0)
     return constraint,obj_function
 
 
 # In[6]:
 
-def convert_constraint2(reachable, buy):
-    #reachable(u,v) & buy(u) -> buy(v)
+def convert_constraint2(reachable, buy, buy_from_trust):
+     #TODO: add buy from trust
+    #reachable(u,v) & buy(u) & buy_from_trust(u,v)-> buy(v)
     constraint = []
     obj_function = 0.0
     for edge,value in reachable.items():
@@ -133,15 +135,20 @@ def convert_constraint2(reachable, buy):
             value_num = 1.0
         else:
             value_num = 0.0 
-        obj_function+=cvxpy.pos(cvxpy.pos(float(value_num)+buy[u]-1.0) - buy[v])
-        constraint.append(cvxpy.pos(cvxpy.pos(float(value_num)+buy[u]-1.0) - buy[v]))
+        if (buy_from_trust[edge]==True):
+            buy_from_trust_value = 1.0
+        else:
+            buy_from_trust_value = 0.0
+        obj_function+=cvxpy.pos(cvxpy.pos(cvxpy.pos(float(value_num)+buy[u]-1.0)+buy_from_trust_value -1) - buy[v])
+        constraint.append(cvxpy.pos(cvxpy.pos(cvxpy.pos(float(value_num)+buy[u]-1.0)+buy_from_trust_value -1) - buy[v]))
         #constraint.append(float(value)+buy[u]-buy[v]<=1)
     return constraint, obj_function
 
 
 # In[7]:
 
-def convert_constraint3(marketed, cost, budget):
+def convert_constraint3(marketed, cost, budget, buy):
+     #TODO: add buy
     #∑ cost(u) * marketed(u) ≤ B
     sum_cost = 0
     for c in cost:
@@ -311,11 +318,16 @@ def run_optimization(sample_graph_folder, sample_size, node_size, budget, delta)
         buys.append(buy)
         #use samples for reachable
         reachable = dict()
+        buy_from_trust = dict()
+        buy_from_marketing = dict()
         for key in samples.keys():
             e1,e2 = extract_edge(key)
             edge = (e1,e2)
             reachable[edge] = samples[key][i]
         reachables.append(reachable)
+        #TODO: use samples for buy_from_trust
+        
+        #TODO:use samples for buy_from_marketing
     
     objective_function = 0.0
     # make the optimization problem 
@@ -324,18 +336,18 @@ def run_optimization(sample_graph_folder, sample_size, node_size, budget, delta)
     
     # make the constraints
     constraints = []
-    function_constraint_3, obj_3 = convert_constraint3(marketed, cost, budget)
-    #objective_function+=obj_3
-    constraints+= function_constraint_3
     for i in range (sample_size):
-        function_constraint_1,obj_1 = convert_constraint1(marketed, buys[i])
+        function_constraint_1,obj_1 = convert_constraint1(marketed, buys[i], buy_from_marketing[i])
         #constraints+=function_constraint_1
         objective_function+=1-obj_1
-        function_constraint_2, obj_2 = convert_constraint2(reachables[i], buys[i])
+        function_constraint_2, obj_2 = convert_constraint2(reachables[i], buys[i], buy_from_trust[i])
         #constraints+=function_constraint_2
         objective_function+=1-obj_2
-    # make the fairness constraints
-    for i in range (sample_size):
+        function_constraint_3, obj_3 = convert_constraint3(marketed, cost, budget, buys[i])
+        objective_function+=obj_3
+        #constraints+= function_constraint_3
+        ########################################
+        # make the fairness constraints
         fairness_constraint1 = convert_fairness_constraint1(sensitive, buys[i], delta)
         #constraints+=fairness_constraint1
         fairness_constraint2 = convert_fairness_constraint2(sensitive, reachable, marketed, delta)
