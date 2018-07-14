@@ -50,48 +50,13 @@ def get_list(edge_path, user_path):
 
 # In[5]:
 
-modeltext = """
-    trusts_directed(bernd,ingo).
-    trusts_directed(ingo,theo).
-    trusts_directed(theo,angelika).
-    trusts_directed(bernd,martijn).
-    trusts_directed(ingo,martijn).
-    trusts_directed(martijn,guy).
-    trusts_directed(guy,theo).
-    trusts_directed(guy,angelika).
-    trusts_directed(laura,ingo).
-    trusts_directed(laura,theo).
-    trusts_directed(laura,guy).
-    trusts_directed(laura,martijn).
-    trusts_directed(kurt,bernd).
-    
-    0.4:: trusts(X,Y) :- trusts_directed(Y,X).
-    0.4:: trusts(X,Y) :- trusts_directed(X,Y).
-    0.3:: trusts(X,Y) :- trusts_directed(X,Z), trusts(Z,Y).
-    
-    query(trusts(bernd,ingo)).
-    query(trusts(ingo,theo)).
-    query(trusts(laura,angelika)).
-    query(trusts(guy,martijn)).
-    query(trusts(ingo,martijn)).
-    query(trusts(martijn,bernd)).
-    query(trusts(bernd,theo)).
-    query(trusts(bernd,theo)).
-    query(trusts(bernd,theo)).
-    query(trusts(bernd,theo)).
-    query(trusts(bernd,golnoosh)).
-"""
-
-
-# In[6]:
-
 def get_samples(modeltext, sample_size):
     model = PrologString(modeltext)
     result = sample.sample(model, n=sample_size, format='dict')
     return result   
 
 
-# In[7]:
+# In[6]:
 
 def test_model(modeltext):
     result = get_samples(modeltext, sample_size=3)
@@ -99,19 +64,15 @@ def test_model(modeltext):
         print(i)
 
 
-# In[ ]:
-
-
-
-
-# In[8]:
+# In[7]:
 
 def generate_model_text(sample_graph_path,node_size):
     model_text = ""
     model = """
-0.4:: trusts(X,Y) :- trusts_directed(Y,X).
-0.4:: trusts(X,Y) :- trusts_directed(X,Y).
-0.3:: trusts(X,Y) :- trusts_directed(X,Z), trusts(Z,Y).
+1.0:: trusts_undirected(X,Y) :- trusts_directed(X,Y).
+1.0:: trusts_undirected(X,Y) :- trusts_directed(Y,X).
+0.4:: trusts(X,Y) :- trusts_undirected(X,Y).
+0.3:: trusts(X,Y) :- trusts_undirected(X,Z), trusts(Z,Y).
 0.2:: buy_from_marketing(_).
 0.3:: buy_from_trust(_,_).
     """
@@ -135,15 +96,7 @@ def generate_model_text(sample_graph_path,node_size):
     return model_text
 
 
-# In[9]:
-
-#sample_graph_path = "../sample_graphs/"
-#model_text = generate_model_text(sample_graph_path,node_size=10)
-
-#test_model(model_text)
-
-
-# In[10]:
+# In[8]:
 
 import pickle
 def save_to_pickle(dict_to_save, path_to_save):
@@ -157,7 +110,7 @@ def read_pickle(pickle_path):
     return b
 
 
-# In[11]:
+# In[9]:
 
 def make_dictionary (sample_result):
     dict_to_save = {}
@@ -172,7 +125,7 @@ def make_dictionary (sample_result):
     return dict_to_save
 
 
-# In[12]:
+# In[ ]:
 
 def save_samples(sample_graph_path, node_size, sample_size):
     model_text = generate_model_text(sample_graph_path,node_size)
@@ -182,22 +135,23 @@ def save_samples(sample_graph_path, node_size, sample_size):
     save_to_pickle(dict_to_save, path_to_save)
 
 
-# In[21]:
+# In[ ]:
 
 sample_graph_path = "../sample_graphs2/"
-save_samples(sample_graph_path, node_size = 20, sample_size = 1000)
+for node_size in [8,10,12,14,20]:
+    save_samples(sample_graph_path, node_size, sample_size = 1000)
 
 
-# In[16]:
+# In[ ]:
 
-sample_graph_path = "../sample_graphs2/"
-pickle_path = sample_graph_path+"sample/generated_sample_dict-"+str(8)+"("+str(1000)+")"+".pickle"
-test_dict = read_pickle(pickle_path)
+#sample_graph_path = "../sample_graphs2/"
+#pickle_path = sample_graph_path+"sample/generated_sample_dict-"+str(8)+"("+str(1000)+")"+".pickle"
+#test_dict = read_pickle(pickle_path)
 
 
-# In[17]:
+# In[ ]:
 
-test_dict
+#test_dict
 
 
 # In[ ]:
