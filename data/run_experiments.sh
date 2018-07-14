@@ -1,8 +1,8 @@
 #!/bin/bash
 
-for i in 10 12;
+for i in 8 10 12 14;
 do
-    ./run_experiment.py ${i} output/out${i}.txt
+    ./dtproblog_runner.py ${i}
 done
 
 
