@@ -51,10 +51,8 @@ class mip_model(object):
                               for n in range(self.n_samples)
                               if i != j)
 
-        cost_expr = (2 * quicksum(self.M) -
-                    (5 / self.n_samples) * quicksum(self.U))
-        dist_expr = (quicksum(self.y) + quicksum(self.z) +
-                    quicksum(self.U))
+        cost_expr = 2 * self.M.sum() - (5 / self.n_samples) * self.U.sum()
+        dist_expr = self.y.sum() + self.z.sum() + self.U.sum()
 
         self.model.setObjective(cost_expr + self.delta * dist_expr,
                                 GRB.MINIMIZE)
