@@ -108,23 +108,26 @@ def make_objective(buy, reward):
 
 # In[5]:
 
-def convert_constraint1(marketed, buy, buy_from_marketing):
+def convert_constraint1(marketed, buy, buy_from_marketing, delta):
      #TODO: add buy from marketing
     #marketed(u) & buy_from_marketing(u) ->buy(u)
+    #~marketed(u) & buy_from_marketing(u) ->~buy(u)
     constraint = []
     obj_function = 0.0
     for uid,value in buy.items():
         obj_function+=cvxpy.pos(cvxpy.pos(marketed[uid]+buy_from_marketing[uid]-1.0)-buy[uid])
-        constraint.append(cvxpy.pos(cvxpy.pos(marketed[uid]+buy_from_marketing[uid]-1.0)-buy[uid]))
-        #constraint.append(marketed[uid]-buy[uid]<=0)
+        obj_function+=cvxpy.pos(cvxpy.pos((1-marketed[uid])+buy_from_marketing[uid]-1.0)-(1-buy[uid]))
+        constraint.append(delta >= cvxpy.pos(cvxpy.pos(marketed[uid]+buy_from_marketing[uid]-1.0)-buy[uid]))
+        constraint.append(delta >= cvxpy.pos(((1-marketed[uid])+buy_from_marketing[uid]-1.0)-(1-buy[uid])))
     return constraint,obj_function
 
 
 # In[6]:
 
-def convert_constraint2(reachable, buy, buy_from_trust):
+def convert_constraint2(reachable, buy, buy_from_trust, delta):
      #TODO: add buy from trust
     #reachable(u,v) & buy(u) & buy_from_trust(u,v)-> buy(v)
+    #reachable(u,v) & ~buy(u) & buy_from_trust(u,v)-> ~buy(v)
     constraint = []
     obj_function = 0.0
     for edge,value in reachable.items():
@@ -140,25 +143,36 @@ def convert_constraint2(reachable, buy, buy_from_trust):
         else:
             buy_from_trust_value = 0.0
         obj_function+=cvxpy.pos(cvxpy.pos(cvxpy.pos(float(value_num)+buy[u]-1.0)+buy_from_trust_value -1) - buy[v])
-        constraint.append(cvxpy.pos(cvxpy.pos(cvxpy.pos(float(value_num)+buy[u]-1.0)+buy_from_trust_value -1) - buy[v]))
-        #constraint.append(float(value)+buy[u]-buy[v]<=1)
+        obj_function+=cvxpy.pos(cvxpy.pos(cvxpy.pos(float(value_num)+(1-buy[u])-1.0)+buy_from_trust_value -1) - (1-buy[v]))
+        constraint.append(delta >= cvxpy.pos(cvxpy.pos(cvxpy.pos(float(value_num)+buy[u]-1.0)+buy_from_trust_value -1) - buy[v]))
+        constraint.append(delta >= cvxpy.pos(cvxpy.pos(cvxpy.pos(float(value_num)+(1-buy[u])-1.0)+buy_from_trust_value -1) - (1-buy[v])))
     return constraint, obj_function
 
 
 # In[7]:
 
-def convert_constraint3(marketed, cost, budget, buy):
+def convert_constraint3(marketed, cost, budget):
      #TODO: add buy
     #∑ cost(u) * marketed(u) ≤ B
-    sum_cost = 0
+    sum_cost = 0.0
     for c in cost:
         uid = c[0]
-        value = float(c[1])
+        value = float(c[1]) 
         sum_cost += value * marketed[uid]
-    return [ sum_cost <= budget ], sum_cost
+    return [sum_cost <= budget], sum_cost
 
 
 # In[8]:
+
+def add_prior(buy):
+    #~buy(u)
+    sum = 0.0
+    for key, value in buy.items(): 
+        sum+= (value)
+    return sum
+
+
+# In[9]:
 
 def convert_fairness_constraint1(sensitive, buy, delta):
     # buy(u) & sensitive(u)
@@ -185,7 +199,7 @@ def convert_fairness_constraint1(sensitive, buy, delta):
     return constraint 
 
 
-# In[9]:
+# In[10]:
 
 def convert_fairness_constraint2(sensitive, reachable, marketed, delta):
     # marketed(u) & reachable (u,v) & sensitive (v)
@@ -221,7 +235,7 @@ def convert_fairness_constraint2(sensitive, reachable, marketed, delta):
     
 
 
-# In[10]:
+# In[11]:
 
 def get_query_result(query):
     result = []
@@ -232,7 +246,7 @@ def get_query_result(query):
     return result
 
 
-# In[11]:
+# In[12]:
 
 def read_samples(sample_graph_folder, node_size, sample_size):
     pickle_path=sample_graph_folder+"generated_sample_dict-"+str(node_size)+"("+str(sample_size)+")"+".pickle"
@@ -242,19 +256,26 @@ def read_samples(sample_graph_folder, node_size, sample_size):
     return samples
 
 
-# In[12]:
+# In[13]:
 
-def extract_edge(key):
-    edge_str = str(key).replace('trusts(', '').replace(')','')
+def extract_edge(key, string_code):
+    edge_str = str(key).replace(string_code, '').replace(')','')
     edges = edge_str.split(',')
     return int(edges[0]),int(edges[1])
 
 
-# In[13]:
+# In[14]:
+
+def extract_user_marketing(key):
+    user = str(key).replace('buy_from_marketing(', '').replace(')','')
+    return int(user)
+
+
+# In[ ]:
 
 def run_optimization(sample_graph_folder, sample_size, node_size, budget, delta):
-    create_db_from_graph(sample_graph_folder, node_size)
-    samples = read_samples(sample_graph_folder, node_size, sample_size)
+    create_db_from_graph(sample_graph_folder+'data/', node_size)
+    samples = read_samples(sample_graph_folder+'sample/', node_size, sample_size)
 
     query_cost = '''
     SELECT * from cost
@@ -306,7 +327,8 @@ def run_optimization(sample_graph_folder, sample_size, node_size, budget, delta)
     
     buys = []
     reachables = []
-    
+    buy_from_trusts= []
+    buy_from_marketings = []
     for i in range(sample_size):
         # make random variable for buy
         buy = dict()
@@ -321,38 +343,54 @@ def run_optimization(sample_graph_folder, sample_size, node_size, budget, delta)
         buy_from_trust = dict()
         buy_from_marketing = dict()
         for key in samples.keys():
-            e1,e2 = extract_edge(key)
-            edge = (e1,e2)
-            reachable[edge] = samples[key][i]
+            if str(key).startswith('trusts('):
+                e1,e2 = extract_edge(key, string_code = 'trusts(')
+                edge = (e1,e2)
+                reachable[edge] = samples[key][i]
+            elif str(key).startswith('buy_from_trust('):
+                e1,e2 = extract_edge(key, string_code = 'buy_from_trust(' )
+                edge = (e1,e2)
+                buy_from_trust[edge] = samples[key][i]
+                
+            elif str(key).startswith('buy_from_marketing('):
+                marketed_user = extract_user_marketing(key)
+                buy_from_marketing[marketed_user] = samples[key][i]
+            else:
+                pass
         reachables.append(reachable)
-        #TODO: use samples for buy_from_trust
-        
-        #TODO:use samples for buy_from_marketing
+        buy_from_trusts.append(buy_from_trust)
+        buy_from_marketings.append(buy_from_marketing)
     
     objective_function = 0.0
     # make the optimization problem 
     for i in range (sample_size):
         objective_function += make_objective(buys[i], reward)
     
+    objective_function = objective_function* (1/float(sample_size))
+    #print(objective_function)
     # make the constraints
     constraints = []
+    
+    function_constraint_3, obj_3 = convert_constraint3(marketed, cost, budget)
+    objective_function+=obj_3
+    #constraints+= function_constraint_3   
+    
     for i in range (sample_size):
-        function_constraint_1,obj_1 = convert_constraint1(marketed, buys[i], buy_from_marketing[i])
+        function_constraint_1,obj_1 = convert_constraint1(marketed, buys[i], buy_from_marketings[i], delta)
         #constraints+=function_constraint_1
-        objective_function+=1-obj_1
-        function_constraint_2, obj_2 = convert_constraint2(reachables[i], buys[i], buy_from_trust[i])
+        objective_function+=(1-obj_1)* (1/2*float(sample_size))
+        function_constraint_2, obj_2 = convert_constraint2(reachables[i], buys[i], buy_from_trusts[i], delta)
         #constraints+=function_constraint_2
-        objective_function+=1-obj_2
-        function_constraint_3, obj_3 = convert_constraint3(marketed, cost, budget, buys[i])
-        objective_function+=obj_3
-        #constraints+= function_constraint_3
+        objective_function+=(1-obj_2)* (1/2*float(sample_size))
+        objective_function+= add_prior(buys[i])* (1/float(sample_size))
+        
         ########################################
         # make the fairness constraints
         fairness_constraint1 = convert_fairness_constraint1(sensitive, buys[i], delta)
         #constraints+=fairness_constraint1
         fairness_constraint2 = convert_fairness_constraint2(sensitive, reachable, marketed, delta)
         #constraints+=fairness_constraint2
-        
+       
     # make the range constraints [0,1]
     for var, value in var_dict.items():
         constraints += [0 <= value, value <= 1]
@@ -365,22 +403,37 @@ def run_optimization(sample_graph_folder, sample_size, node_size, budget, delta)
     
 
     # Solve the problem
-    objective_function = objective_function* (1/float(sample_size))
+    #print('\nobjective_function\n%s'%('='*10))
+    #print(objective_function)
+    #print('\nConstraints\n%s'%('='*10))
+    #print(constraints)
     objective = cvxpy.Maximize(objective_function)
     problem = cvxpy.Problem(objective, constraints)
     final_result = problem.solve()
     
     
     # Process the results
-    result = dict()
+    marketed_result = dict()
     for user in users:
         uid = user[0]
         vid = ('marketed', uid)
-        result[uid] = var_dict[vid].value
-    
+        marketed_result[uid] = var_dict[vid].value
+        
     
     print('\nMarketed results\n%s'%('='*10))
-    print(result)
+    print(marketed_result)
+    
+    buyer_result = dict()
+    for user in users:
+        buyer_value = 0.0
+        for i in range (sample_size):
+            uid = user[0]
+            vid = ('buy', i, uid)
+            buyer_value+=var_dict[vid].value
+        buyer_result[uid] = buyer_value* (1/float(sample_size))
+    
+    print('\nBuyer results\n%s'%('='*10))
+    print(buyer_result)
     
     print('\nStatus of optimization\n%s'%('='*10))
     print(problem.status)
@@ -389,10 +442,15 @@ def run_optimization(sample_graph_folder, sample_size, node_size, budget, delta)
     print(problem.value)
 
 
-# In[14]:
+# In[ ]:
 
-sample_graph_folder = '../sample_graphs/'
-run_optimization(sample_graph_folder, sample_size = 1000, node_size = 10, budget = 4, delta = 0.001)
+sample_graph_folder = '../sample_graphs2/'
+run_optimization(sample_graph_folder, sample_size = 1000, node_size = 8, budget = 4, delta = 0.001)
+
+
+# In[ ]:
+
+
 
 
 # In[ ]:
