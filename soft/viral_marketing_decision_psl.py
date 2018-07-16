@@ -168,7 +168,7 @@ def add_prior(buy):
     #~buy(u)
     sum = 0.0
     for key, value in buy.items(): 
-        sum+= (value)
+        sum+= (1-value)
     return sum
 
 
@@ -271,9 +271,13 @@ def extract_user_marketing(key):
     return int(user)
 
 
-# In[ ]:
+# In[15]:
 
 def run_optimization(sample_graph_folder, sample_size, node_size, budget, delta):
+    
+    w_prior = 0.5
+    w_const = 1.0
+    w_reward = 10.0
     create_db_from_graph(sample_graph_folder+'data/', node_size)
     samples = read_samples(sample_graph_folder+'sample/', node_size, sample_size)
 
@@ -366,23 +370,24 @@ def run_optimization(sample_graph_folder, sample_size, node_size, budget, delta)
     for i in range (sample_size):
         objective_function += make_objective(buys[i], reward)
     
-    objective_function = objective_function* (1/float(sample_size))
+    objective_function = objective_function* (1/float(sample_size)) * w_reward
     #print(objective_function)
     # make the constraints
     constraints = []
     
     function_constraint_3, obj_3 = convert_constraint3(marketed, cost, budget)
-    objective_function+=obj_3
+    objective_function+=obj_3 * w_reward
     #constraints+= function_constraint_3   
     
     for i in range (sample_size):
         function_constraint_1,obj_1 = convert_constraint1(marketed, buys[i], buy_from_marketings[i], delta)
         #constraints+=function_constraint_1
-        objective_function+=(1-obj_1)* (1/2*float(sample_size))
+        objective_function+=(1-(obj_1* (1/2*float(sample_size)))) * w_const
         function_constraint_2, obj_2 = convert_constraint2(reachables[i], buys[i], buy_from_trusts[i], delta)
         #constraints+=function_constraint_2
-        objective_function+=(1-obj_2)* (1/2*float(sample_size))
-        objective_function+= add_prior(buys[i])* (1/float(sample_size))
+        objective_function+=(1-(obj_2* (1/2*float(sample_size)))) * w_const
+        
+        objective_function+= 1- add_prior(1-(buys[i]* (1/float(sample_size))))* w_prior
         
         ########################################
         # make the fairness constraints
@@ -442,7 +447,7 @@ def run_optimization(sample_graph_folder, sample_size, node_size, budget, delta)
     print(problem.value)
 
 
-# In[ ]:
+# In[16]:
 
 sample_graph_folder = '../sample_graphs2/'
 run_optimization(sample_graph_folder, sample_size = 1000, node_size = 8, budget = 4, delta = 0.001)
